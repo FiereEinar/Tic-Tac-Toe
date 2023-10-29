@@ -12,7 +12,7 @@ const gameBoard = (function() {
             if(arrayBoard[board.id] != '') {
                 return;
             }
-            arrayBoard[board.id] = 'X';
+            arrayBoard[board.id] = players.getPersonSign;
             playRound();
         });
     })
@@ -37,17 +37,23 @@ const gameBoard = (function() {
 })();
 
 const players = (function() {
-    function Player(choice) {
-        this.choice = choice;
+    function Player(sign) {
+        this.sign = sign;
     }
-    const player = new Player('X');
+    Player.prototype.getPlayerSign = () => {
+    		return sign;
+    }
+    
+    const person = new Player('X');
     const computer = new Player('O');
-
+    
     const computerPlay = function() {
         return Math.floor(Math.random() * 9);
     }
     return {
         computerPlay: computerPlay,
+        getPersonSign: person.getPlayerSign,
+        //computerSign: computer.sign
     }
 })();
 

@@ -34,8 +34,8 @@ const gameBoard = (() => {
             getComputerChoice();
         } else if (gameRunning) {
             arrayBoard[computerChoice] = players.getComputerSign();
-            updateDom();
             checkForWin(arrayBoard);
+            updateDom();
         }
     }
     const checkForWin = (arrayBoard) => {
@@ -53,24 +53,44 @@ const gameBoard = (() => {
             for (let j = 0; j < 3; j++) {
                 if (board[i][j] === board[i][j+1] && board[i][j] != ''
                     && board[i][j+1] === board[i][j+2] && board[i][j+1] != '') {
-                        console.log(board[i][j], 'win ROW');
+                        //console.log(board[i][j], 'win ROW');
+                        displayController.updateWinnerDisplay(`Player ${board[i][j]} won!`)
                         gameOver();
+                        return;
                 } //checks for columns
                 else if (board[0][i] === board[1][i] && board[0][i] != ''
                     && board[1][i] === board[2][i] && board[1][i] != '') {
-                        console.log(board[i][i], 'win COLUMN');
+                        //console.log(board[i][i], 'win COLUMN');
+                        displayController.updateWinnerDisplay(`Player ${board[i][i]} won!`)
                         gameOver();
+                        return;
                 }
             }
         } //checks for diagonals
         if (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[1][1] != ''
             || board[0][2] === board[1][1] && board[1][1] === board[2][0] && board[1][1] != '') {
-                console.log(board[1][1], 'win DIAGONAL');
+                //console.log(board[1][1], 'win DIAGONAL');
+                displayController.updateWinnerDisplay(`Player ${board[1][1]} won!`)
                 gameOver();
+                return;
         }
     }
     const gameOver = () => {
     	gameRunning = false;
+    }
+    const restartBoardArray = () => {
+    	for (let i = 0; i < arrayBoard.length; i++) {
+    		arrayBoard[i] = '';
+    	}
+    	gameRunning = true;
+    }
+    const getBoardArray = () => {
+    	return arrayBoard;
+    }
+    return {
+    	restartBoardArray: restartBoardArray,
+    	getBoardArray: getBoardArray,
+    	updateDom: updateDom,
     }
 })();
 
@@ -94,3 +114,21 @@ const players = (() => {
     }
 })();
 
+const displayController = (() => {
+	const restartButton = document.querySelector('.restart');
+	const winnerDisplay = document.querySelector('.winner');
+
+	const restart = () => {
+		gameBoard.restartBoardArray();
+		gameBoard.updateDom();
+		updateWinnerDisplay('');
+	}
+	const updateWinnerDisplay = (winner) => {
+		winnerDisplay.innerHTML = winner
+	}
+	restartButton.addEventListener('click', restart);
+	return {
+		restart: restart,
+		updateWinnerDisplay: updateWinnerDisplay,
+	}
+})();

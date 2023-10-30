@@ -1,44 +1,14 @@
 const gameBoard = (() => {
-    const board = document.querySelectorAll('.board');
-    
     let gameRunning = true;
+    let availableSpots = 9;
 
     const arrayBoard = [
         '','','',
         '','','',
         '','',''
     ];  
-    board.forEach((board) => {
-        board.addEventListener('click', () => {
-            playRound(board);
-        });
-    })
-    const playRound = (board) => {
-        if (arrayBoard[board.id] != '') {
-            return;
-        } else if (gameRunning) {
-        	arrayBoard[board.id] = players.getPersonSign();
-        	checkForWin(arrayBoard);
-       		updateDom();
-       		getComputerChoice();
-        }
-    }
-    const updateDom = () => {
-        for (let i = 0; i <= arrayBoard.length - 1; i++){
-            board[i].innerHTML = arrayBoard[i];
-        }
-    }
-    const getComputerChoice = () => {
-        const computerChoice = players.computerPlay();
-        if (arrayBoard[computerChoice] != '') {
-            getComputerChoice();
-        } else if (gameRunning) {
-            arrayBoard[computerChoice] = players.getComputerSign();
-            checkForWin(arrayBoard);
-            updateDom();
-        }
-    }
     const checkForWin = (arrayBoard) => {
+    	availableSpots--;
         const board = [[],[],[]];
         //converts my 1d array into 2d array
         let m = 0;
@@ -53,29 +23,35 @@ const gameBoard = (() => {
             for (let j = 0; j < 3; j++) {
                 if (board[i][j] === board[i][j+1] && board[i][j] != ''
                     && board[i][j+1] === board[i][j+2] && board[i][j+1] != '') {
-                        //console.log(board[i][j], 'win ROW');
-                        displayController.updateWinnerDisplay(`Player ${board[i][j]} won!`)
-                        gameOver();
+                        weHaveAWinner(board[i][j]);
                         return;
                 } //checks for columns
                 else if (board[0][i] === board[1][i] && board[0][i] != ''
                     && board[1][i] === board[2][i] && board[1][i] != '') {
-                        //console.log(board[i][i], 'win COLUMN');
-                        displayController.updateWinnerDisplay(`Player ${board[i][i]} won!`)
-                        gameOver();
+						weHaveAWinner(board[i][i]);
                         return;
                 }
             }
         } //checks for diagonals
         if (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[1][1] != ''
             || board[0][2] === board[1][1] && board[1][1] === board[2][0] && board[1][1] != '') {
-                //console.log(board[1][1], 'win DIAGONAL');
-                displayController.updateWinnerDisplay(`Player ${board[1][1]} won!`)
-                gameOver();
+				weHaveAWinner(board[1][1]);
                 return;
         }
+        else if (availableSpots == 0) {
+        	weHaveAWinner('tie');
+        }
     }
-    const gameOver = () => {
+    const weHaveAWinner = (winner) => {
+    	let result;
+    	if (winner == 'X') {
+    		result = 'Player won!';
+    	} else if (winner == 'O') {
+    		result = 'Computer won!';
+    	} else if (winner == 'tie') {
+    		result = "It's a tie!";
+    	}
+    	displayController.updateWinnerDisplay(`${result}`)
     	gameRunning = false;
     }
     const restartBoardArray = () => {
@@ -87,10 +63,18 @@ const gameBoard = (() => {
     const getBoardArray = () => {
     	return arrayBoard;
     }
+    const getGameStatus = () => {
+    	return gameRunning;
+    }
+    const restartAvailableSpots = () => {
+    	availableSpots = 9;
+    }
     return {
     	restartBoardArray: restartBoardArray,
     	getBoardArray: getBoardArray,
-    	updateDom: updateDom,
+    	checkForWin: checkForWin,
+    	getGameStatus: getGameStatus,
+    	restartAvailableSpots: restartAvailableSpots,
     }
 })();
 
@@ -103,12 +87,24 @@ const players = (() => {
     }
     const person = new Player('X');
     const computer = new Player('O');
+    const arrayBoard = gameBoard.getBoardArray();
     
     computer.computerPlay = () => {
         return Math.floor(Math.random() * 9);
     }
+    const getComputerChoice = () => {
+    	let gameRunning = gameBoard.getGameStatus();
+        const computerChoice = computer.computerPlay();
+        if (arrayBoard[computerChoice] != '') {
+            getComputerChoice();
+        } else if (gameRunning) {
+            arrayBoard[computerChoice] = computer.getPlayerSign();
+            gameBoard.checkForWin(arrayBoard);
+            displayController.updateDom();
+        }
+    }
     return {
-        computerPlay: computer.computerPlay,
+        getComputerChoice: getComputerChoice,
         getPersonSign: person.getPlayerSign,
         getComputerSign: computer.getPlayerSign,
     }
@@ -117,10 +113,34 @@ const players = (() => {
 const displayController = (() => {
 	const restartButton = document.querySelector('.restart');
 	const winnerDisplay = document.querySelector('.winner');
-
+	const board = document.querySelectorAll('.board');
+	const arrayBoard = gameBoard.getBoardArray();
+	
+	board.forEach((board) => {
+        board.addEventListener('click', () => {
+            playRound(board);
+        });
+    });
+    const updateDom = () => {
+    	for (let i = 0; i <= arrayBoard.length - 1; i++) {
+    		board[i].innerHTML = arrayBoard[i];
+    	}
+    }
+    const playRound = (board) => {
+    	let gameRunning = gameBoard.getGameStatus();
+        if (arrayBoard[board.id] != '') {
+            return;
+        } else if (gameRunning) {
+        	arrayBoard[board.id] = players.getPersonSign();
+        	gameBoard.checkForWin(arrayBoard);
+       		updateDom();
+       		players.getComputerChoice();
+        }
+    }
 	const restart = () => {
 		gameBoard.restartBoardArray();
-		gameBoard.updateDom();
+		gameBoard.restartAvailableSpots();
+		updateDom();
 		updateWinnerDisplay('');
 	}
 	const updateWinnerDisplay = (winner) => {
@@ -130,5 +150,6 @@ const displayController = (() => {
 	return {
 		restart: restart,
 		updateWinnerDisplay: updateWinnerDisplay,
+		updateDom: updateDom,
 	}
 })();

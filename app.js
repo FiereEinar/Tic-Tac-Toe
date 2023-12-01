@@ -146,6 +146,7 @@ const displayController = (() => {
 		gameBoard.restartAvailableSpots();
 		updateDom();
 		updateWinnerDisplay('');
+		enableScreen();
 	}
 	const updateWinnerDisplay = (winner) => {
 		winnerDisplay.innerHTML = winner

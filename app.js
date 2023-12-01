@@ -101,6 +101,7 @@ const players = (() => {
             arrayBoard[computerChoice] = computer.getPlayerSign();
             gameBoard.checkForWin(arrayBoard);
             displayController.updateDom();
+            displayController.enableScreen();
         }
     }
     return {
@@ -131,10 +132,13 @@ const displayController = (() => {
         if (arrayBoard[board.id] != '') {
             return;
         } else if (gameRunning) {
-        	arrayBoard[board.id] = players.getPersonSign();
+            arrayBoard[board.id] = players.getPersonSign();
         	gameBoard.checkForWin(arrayBoard);
-       		updateDom();
-       		players.getComputerChoice();
+            updateDom();
+            disableScreen();
+            setTimeout(() => {
+                players.getComputerChoice();
+            }, 800);
         }
     }
 	const restart = () => {
@@ -146,10 +150,21 @@ const displayController = (() => {
 	const updateWinnerDisplay = (winner) => {
 		winnerDisplay.innerHTML = winner
 	}
+    const disableScreen = () => {
+        board.forEach((brd) => {
+            brd.classList.add('disabled');
+        });
+    }
+    const enableScreen = () => {
+        board.forEach((brd) => {
+            brd.classList.remove('disabled');
+        });
+    }
 	restartButton.addEventListener('click', restart);
 	return {
 		restart: restart,
 		updateWinnerDisplay: updateWinnerDisplay,
 		updateDom: updateDom,
+        enableScreen: enableScreen,
 	}
 })();
